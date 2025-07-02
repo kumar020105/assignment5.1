@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Details</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+    }
+    .details-container {
+      max-width: 800px;
+      margin: auto;
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #fefefe;
+    }
+    .slider {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+    .slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+    }
+    .slider img.active {
+      display: block;
+    }
+    .slider-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
+    .slider-btn.left {
+      left: 10px;
+    }
+    .slider-btn.right {
+      right: 10px;
+    }
+    .review {
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">Product Details</h2>
+  <div class="details-container" id="details"></div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("id");
+    const product = JSON.parse(localStorage.getItem(`product-${productId}`));
+
+    if (product) {
+      const container = document.getElementById("details");
+
+      // Use real product.images or fallback to thumbnail
+      const images = product.images?.length >= 1
+        ? product.images.slice(0, 4)
+        : Array(4).fill(product.thumbnail);
+
+      const imageSlides = images.map((src, i) =>
+        `<img src="${src}" class="${i === 0 ? 'active' : ''}">`
+      ).join("");
+
+      container.innerHTML = `
+        <div class="slider" id="slider">
+          ${imageSlides}
+          <button class="slider-btn left" onclick="prevSlide()">&#10094;</button>
+          <button class="slider-btn right" onclick="nextSlide()">&#10095;</button>
+        </div>
+        <h2>${product.title}</h2>
+        <p><strong>ID:</strong> ${product.id}</p>
+        <p><strong>Description:</strong> ${product.description}</p>
+        <p><strong>Category:</strong> ${product.category}</p>
+        <p><strong>Brand:</strong> ${product.brand}</p>
+        <p><strong>SKU:</strong> ${product.sku || "N/A"}</p>
+        <p><strong>Price:</strong> $${product.price}</p>
+        <p><strong>Discount:</strong> ${product.discountPercentage}%</p>
+        <p><strong>Rating:</strong> ${product.rating}</p>
+        <p><strong>Stock:</strong> ${product.stock}</p>
+        <p><strong>Weight:</strong> ${product.weight || "N/A"}g</p>
+        <p><strong>Dimensions:</strong> ${product.dimensions?.width || "?"} x ${product.dimensions?.height || "?"} x ${product.dimensions?.depth || "?"} cm</p>
+        <p><strong>Warranty:</strong> ${product.warrantyInformation || "N/A"}</p>
+        <p><strong>Shipping Info:</strong> ${product.shippingInformation || "N/A"}</p>
+        <p><strong>Availability:</strong> ${product.availabilityStatus || "N/A"}</p>
+        <p><strong>Return Policy:</strong> ${product.returnPolicy || "N/A"}</p>
+        <p><strong>Minimum Order Quantity:</strong> ${product.minimumOrderQuantity || "N/A"}</p>
+        <p><strong>Tags:</strong> ${product.tags?.join(", ") || "None"}</p>
+        <p><strong>QR Code:</strong><br><img src="${product.meta?.qrCode || '#'}" alt="QR Code" width="150"></p>
+        <h3>Reviews:</h3>
+        ${
+          (product.reviews || []).map(review => `
+            <div class="review">
+              <p><strong>${review.reviewerName}</strong> (${review.reviewerEmail})</p>
+              <p><strong>Rating:</strong> ${review.rating}</p>
+              <p><em>${review.comment}</em></p>
+              <p><small>${new Date(review.date).toLocaleDateString()}</small></p>
+            </div>
+          `).join("")
+        }
+      `;
+    } else {
+      document.getElementById("details").innerHTML = "<p>Product not found in local storage.</p>";
+    }
+
+    // Slider logic
+    let currentSlide = 0;
+    function showSlide(index) {
+      const slides = document.querySelectorAll(".slider img");
+      slides.forEach((img, i) => {
+        img.classList.toggle("active", i === index);
+      });
+    }
+
+    function prevSlide() {
+      const slides = document.querySelectorAll(".slider img");
+      currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+      showSlide(currentSlide);
+    }
+
+    function nextSlide() {
+      const slides = document.querySelectorAll(".slider img");
+      currentSlide = (currentSlide + 1) % slides.length;
+      showSlide(currentSlide);
+    }
+  </script>
+</body>
+</html>
